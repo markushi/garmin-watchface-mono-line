@@ -3,6 +3,21 @@
 <iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="3">
     <iq:application entry="WatchFaceApp" id="ae15c9ab-425f-413b-8f7f-b481138eeab2" launcherIcon="@Drawables.LauncherIcon" minSdkVersion="3.1.0" name="@Strings.appName" type="watchface" version="0.0.0">
         <iq:products>
+            <iq:product id="approachs7042mm"/>
+            <iq:product id="approachs7047mm"/>
+            <iq:product id="epix2pro42mm"/>
+            <iq:product id="epix2pro47mm"/>
+            <iq:product id="epix2pro47mmsystem7preview"/>
+            <iq:product id="epix2pro51mm"/>
+            <iq:product id="fr265"/>
+            <iq:product id="fr265s"/>
+            <iq:product id="fr955"/>
+            <iq:product id="fr965"/>
+            <iq:product id="marq2"/>
+            <iq:product id="marq2aviator"/>
+            <iq:product id="venu2"/>
+            <iq:product id="venu2plus"/>
+            <iq:product id="venu2s"/>
             <iq:product id="venu3"/>
             <iq:product id="venu3s"/>
             <iq:product id="vivoactive5"/>
