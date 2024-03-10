@@ -137,7 +137,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       0.5
     ).toNumber();
 
-    if (batteryPercentageInPx >= _batteryIconHeight/2) {
+    if (batteryPercentageInPx >= _batteryIconHeight / 2) {
       drawLayerDc.fillRoundedRectangle(
         _batteryIconOffsetX,
         _batteryIconOffsetY,
@@ -172,11 +172,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     drawLayerDc.drawBitmap(_stepsIconOffsetX, _stepsIconOffsetY, _stepIcon);
   }
 
-  private function updateWatchOverlay(isFullUpdate as Boolean) as Void {
-    var drawLayerDc = _drawLayer.getDc();
-    if (drawLayerDc == null) {
-      return;
-    }
+  private function drawTimeAndDate(drawLayerDc as Dc) {
     var clockTime = System.getClockTime();
 
     var now = Time.now();
@@ -191,7 +187,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     ]).toUpper();
 
     drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-    drawLayerDc.clear();
 
     drawLayerDc.drawText(
       _hourTextOffsetX,
@@ -218,10 +213,22 @@ class WatchFaceView extends WatchUi.WatchFace {
       dateStr,
       Graphics.TEXT_JUSTIFY_LEFT
     );
+  }
+
+  private function updateWatchOverlay(isFullUpdate as Boolean) as Void {
+    var drawLayerDc = _drawLayer.getDc();
+    if (drawLayerDc == null) {
+      return;
+    }
+
+    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+    drawLayerDc.clear();
 
     drawSteps(drawLayerDc);
 
     drawBattery(drawLayerDc);
+
+    drawTimeAndDate(drawLayerDc);
   }
 
   public function onHide() as Void {
