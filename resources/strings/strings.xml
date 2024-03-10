@@ -1,3 +1,5 @@
 <strings>
-    <string id="AppName">Classic Watchface</string>
+    <string id="appName">Classic Watchface</string>
+    <string id="daysRemainingShort">d</string>
+    <string id="steps">Steps</string>
 </strings>
