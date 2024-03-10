@@ -45,6 +45,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     var settings = System.getDeviceSettings();
     var hourFontHeight = Graphics.getFontHeight(FONT_HOUR);
+    var tinyFontHeight = Graphics.getFontHeight(Graphics.FONT_TINY);
 
     var xShift = 18;
 
@@ -53,16 +54,12 @@ class WatchFaceView extends WatchUi.WatchFace {
     _hourTextOffsetX = _centerX + xShift;
     _hourTextOffsetY = settings.screenHeight / 2 - hourFontHeight / 2;
 
-    var minuteFontHeight = Graphics.getFontHeight(FONT_MINUTE);
     _minuteTextOffsetX = settings.screenWidth / 2 + HOUR_MINUTE_GAP + xShift;
     _minuteTextOffsetY = _hourTextOffsetY + 1;
 
     _dateTextOffsetX = settings.screenWidth / 2 + HOUR_MINUTE_GAP + xShift;
 
-    var dateFontHeight = Graphics.getFontHeight(Graphics.FONT_TINY);
-    _dateTextOffsetY = _hourTextOffsetY + hourFontHeight - dateFontHeight + 4;
-
-    var tinyFontHeight = Graphics.getFontHeight(Graphics.FONT_TINY);
+    _dateTextOffsetY = _hourTextOffsetY + hourFontHeight - tinyFontHeight + 4;
 
     _batteryOffsetY = settings.screenHeight / 20;
     _batteryIconOffsetY = _batteryOffsetY + tinyFontHeight;
