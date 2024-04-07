@@ -8,6 +8,7 @@ class SettingsView extends WatchUi.View {
 
   public var topComplication as Number = 0;
   public var bottomComplication as Number = 0;
+  public var colorId as Number = 0;
 
   private var _stepIcon =
     WatchUi.loadResource($.Rez.Drawables.id_icon_steps) as BitmapResource;
@@ -29,21 +30,34 @@ class SettingsView extends WatchUi.View {
     if (bottomComplication == null) {
       bottomComplication = WatchFaceApp.COMPLICATION_STEPS; // steps
     }
+
+    colorId = Storage.getValue("color");
+    if (colorId == null) {
+      colorId = 0;
+    }
   }
 
   public function toggle(direction as Number) {
-    var id = selectedItem == 0 ? topComplication : bottomComplication;
-    // prevent underflow when direction is negative
-    id =
-      (id + direction + WatchFaceApp.COMPLICATIONS_COUNT) %
-      WatchFaceApp.COMPLICATIONS_COUNT;
+    if (selectedItem == 0 || selectedItem == 1) {
+      var id = selectedItem == 0 ? topComplication : bottomComplication;
+      // prevent underflow when direction is negative
+      id =
+        (id + direction + WatchFaceApp.COMPLICATIONS_COUNT) %
+        WatchFaceApp.COMPLICATIONS_COUNT;
 
-    if (selectedItem == 0) {
-      topComplication = id;
-      Storage.setValue("c.top", topComplication);
-    } else {
-      bottomComplication = id;
-      Storage.setValue("c.bottom", bottomComplication);
+      if (selectedItem == 0) {
+        topComplication = id;
+        Storage.setValue("c.top", topComplication);
+      } else {
+        bottomComplication = id;
+        Storage.setValue("c.bottom", bottomComplication);
+      }
+    } else if (selectedItem == 2) {
+      // watchface color
+      colorId =
+        (colorId + direction + WatchFaceApp.COLORS_COUNT) %
+        WatchFaceApp.COLORS_COUNT;
+      Storage.setValue("color", colorId);
     }
   }
   public function onPrevious() {
@@ -58,6 +72,7 @@ class SettingsView extends WatchUi.View {
     dc.clearClip();
     dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
     dc.clear();
+    dc.setAntiAlias(true);
 
     var settings = System.getDeviceSettings();
     var iconGap = settings.screenWidth / 40;
@@ -65,58 +80,42 @@ class SettingsView extends WatchUi.View {
     dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
     dc.setPenWidth(4);
 
-    var complicationRadius = settings.screenWidth / 8;
+    var settingRadius = settings.screenWidth / 10;
     var arrowSize = settings.screenWidth / 40;
 
-    var topComplicationCenter = [
-      settings.screenWidth / 2,
-      complicationRadius * 2,
-    ];
+    var topComplicationCenter = [settings.screenWidth / 2, settingRadius * 2];
 
     var bottomComplicationCenter = [
       settings.screenWidth / 2,
-      settings.screenHeight - complicationRadius * 2,
+      settings.screenHeight - settingRadius * 2,
     ];
 
-    dc.drawCircle(
-      topComplicationCenter[0],
-      topComplicationCenter[1],
-      complicationRadius
-    );
+    var colorSettingCenter = [
+      settings.screenWidth / 2,
+      settings.screenHeight / 2,
+    ];
 
-    dc.drawCircle(
-      bottomComplicationCenter[0],
-      bottomComplicationCenter[1],
-      complicationRadius
-    );
+    var positions =
+      [topComplicationCenter, bottomComplicationCenter, colorSettingCenter] as
+      Array<Array<Number> >;
 
-    dc.setPenWidth(3);
-    if (selectedItem == 0) {
-      rightArrow(
-        dc,
-        topComplicationCenter[0] + complicationRadius + iconGap,
-        topComplicationCenter[1],
-        arrowSize
-      );
-      leftArrow(
-        dc,
-        topComplicationCenter[0] - complicationRadius - iconGap,
-        topComplicationCenter[1],
-        arrowSize
-      );
-    } else if (selectedItem == 1) {
-      rightArrow(
-        dc,
-        bottomComplicationCenter[0] + complicationRadius + iconGap,
-        bottomComplicationCenter[1],
-        arrowSize
-      );
-      leftArrow(
-        dc,
-        bottomComplicationCenter[0] - complicationRadius - iconGap,
-        bottomComplicationCenter[1],
-        arrowSize
-      );
+    for (var i = 0; i < positions.size(); i++) {
+      drawCircle(dc, positions[i], settingRadius);
+      dc.setPenWidth(3);
+      if (selectedItem == i) {
+        rightArrow(
+          dc,
+          positions[i][0] + settingRadius + iconGap,
+          positions[i][1],
+          arrowSize
+        );
+        leftArrow(
+          dc,
+          positions[i][0] - settingRadius - iconGap,
+          positions[i][1],
+          arrowSize
+        );
+      }
     }
 
     var topBitmap = getBitmapFor(topComplication) as BitmapResource?;
@@ -124,6 +123,17 @@ class SettingsView extends WatchUi.View {
 
     var bottomBitmap = getBitmapFor(bottomComplication) as BitmapResource?;
     centerBitmap(dc, bottomComplicationCenter, bottomBitmap);
+
+    dc.setColor(WatchFaceApp.getColor(colorId), Graphics.COLOR_TRANSPARENT);
+    dc.fillCircle(
+      colorSettingCenter[0],
+      colorSettingCenter[1],
+      settingRadius - iconGap
+    );
+  }
+
+  private function drawCircle(dc as Dc, xy as Array<Number>, radius as Number) {
+    dc.drawCircle(xy[0], xy[1], radius);
   }
 
   private function getBitmapFor(id as Number) as BitmapResource? {
@@ -192,7 +202,13 @@ class SettingsDelegate extends WatchUi.BehaviorDelegate {
     var xy = evt.getCoordinates();
 
     var settings = System.getDeviceSettings();
-    _view.selectedItem = xy[1] < settings.screenHeight / 2 ? 0 : 1;
+    if (xy[1] < settings.screenHeight / 3) {
+      _view.selectedItem = 0;
+    } else if (xy[1] > (2 * settings.screenHeight) / 3) {
+      _view.selectedItem = 1;
+    } else {
+      _view.selectedItem = 2;
+    }
 
     WatchUi.requestUpdate();
 

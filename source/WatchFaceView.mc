@@ -20,7 +20,10 @@ class WatchFaceView extends WatchUi.WatchFace {
   private var _dateTextOffsetY as Number;
 
   private var _centerX as Number;
+  private var _centerY as Number;
+
   private var _screenHeight as Number;
+  private var _tinyFontHeight as Number;
   private var _labelHeight as Number;
   private var _padding as Number;
 
@@ -29,6 +32,8 @@ class WatchFaceView extends WatchUi.WatchFace {
 
   private var _topComplication as Number = -1;
   private var _bottomComplication as Number = -1;
+  private var _colorId as Number = -1;
+  private var _color as Number = Graphics.COLOR_LT_GRAY;
 
   private var _batteryIconWidth as Number;
   private var _batteryIconHeight as Number;
@@ -41,6 +46,7 @@ class WatchFaceView extends WatchUi.WatchFace {
   private const FONT_HOUR = WatchUi.loadResource(Rez.Fonts.id_font_hour);
   private const FONT_MINUTE = WatchUi.loadResource(Rez.Fonts.id_font_minute);
   private const HOUR_MINUTE_GAP = 8;
+  private const AM_PM_GAP = -8;
 
   public function initialize() {
     WatchFace.initialize();
@@ -49,22 +55,21 @@ class WatchFaceView extends WatchUi.WatchFace {
     _screenHeight = settings.screenHeight;
 
     var hourFontHeight = Graphics.getFontHeight(FONT_HOUR);
-    var tinyFontHeight = Graphics.getFontHeight(Graphics.FONT_TINY);
-    _labelHeight = tinyFontHeight;
-
-    var xShift = 18;
+    _tinyFontHeight = Graphics.getFontHeight(Graphics.FONT_TINY);
+    _labelHeight = _tinyFontHeight;
 
     _centerX = settings.screenWidth / 2;
+    _centerY = settings.screenHeight / 2;
 
-    _hourTextOffsetX = _centerX + xShift;
-    _hourTextOffsetY = settings.screenHeight / 2 - hourFontHeight / 2;
+    _hourTextOffsetX = _centerX;
+    _hourTextOffsetY = _centerY - hourFontHeight / 2;
 
-    _minuteTextOffsetX = settings.screenWidth / 2 + HOUR_MINUTE_GAP + xShift;
+    _minuteTextOffsetX = _centerX + HOUR_MINUTE_GAP;
     _minuteTextOffsetY = _hourTextOffsetY + 1;
 
-    _dateTextOffsetX = settings.screenWidth / 2 + HOUR_MINUTE_GAP + xShift;
+    _dateTextOffsetX = _centerX + HOUR_MINUTE_GAP;
 
-    _dateTextOffsetY = _hourTextOffsetY + hourFontHeight - tinyFontHeight + 4;
+    _dateTextOffsetY = _hourTextOffsetY + hourFontHeight - _tinyFontHeight + 4;
 
     _padding = settings.screenHeight / 20;
     _batteryIconWidth = 56;
@@ -173,7 +178,10 @@ class WatchFaceView extends WatchUi.WatchFace {
       if (hr != null) {
         label = hr.toString();
       } else {
-        var heartRateHistory = Toybox.ActivityMonitor.getHeartRateHistory(1, true);
+        var heartRateHistory = Toybox.ActivityMonitor.getHeartRateHistory(
+          1,
+          true
+        );
         var heartRateSample = heartRateHistory.next();
         if (
           heartRateSample != null &&
@@ -215,12 +223,25 @@ class WatchFaceView extends WatchUi.WatchFace {
   }
 
   private function drawTimeAndDate(drawLayerDc as Dc) {
+    var settings = System.getDeviceSettings();
+    var is24Hour = settings.is24Hour;
+
     var clockTime = System.getClockTime();
 
     var now = Time.now();
     var info = Gregorian.info(now, Time.FORMAT_MEDIUM);
-
-    var hourString = clockTime.hour.format("%02d");
+    var hour = clockTime.hour;
+    var hourString;
+    if (is24Hour) {
+      hourString = hour.format("%02d");
+    } else {
+      hour = hour % 12;
+      if (hour == 0) {
+        hourString = "12";
+      } else {
+        hourString = hour.format("%d");
+      }
+    }
     var minuteString = clockTime.min.format("%02d");
 
     var dateStr = Lang.format("$1$, $2$", [
@@ -228,10 +249,20 @@ class WatchFaceView extends WatchUi.WatchFace {
       info.day,
     ]).toUpper();
 
-    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+    var hourWidth =
+      drawLayerDc.getTextWidthInPixels(hourString, FONT_HOUR) +
+      HOUR_MINUTE_GAP / 2;
+
+    var minuteWidth =
+      drawLayerDc.getTextWidthInPixels(minuteString, FONT_MINUTE) +
+      HOUR_MINUTE_GAP / 2;
+
+    var xShift = (hourWidth - minuteWidth) / 2;
+
+    drawLayerDc.setColor(_color, Graphics.COLOR_BLACK);
 
     drawLayerDc.drawText(
-      _hourTextOffsetX,
+      _hourTextOffsetX + xShift,
       _hourTextOffsetY,
       FONT_HOUR,
       hourString,
@@ -239,7 +270,7 @@ class WatchFaceView extends WatchUi.WatchFace {
     );
 
     drawLayerDc.drawText(
-      _minuteTextOffsetX,
+      _minuteTextOffsetX + xShift,
       _minuteTextOffsetY,
       FONT_MINUTE,
       minuteString,
@@ -248,8 +279,34 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     drawLayerDc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
 
+    if (!is24Hour) {
+      var amPmX =
+        _hourTextOffsetX -
+        hourWidth -
+        drawLayerDc.getTextWidthInPixels("M", Graphics.FONT_TINY) / 2 -
+        HOUR_MINUTE_GAP +
+        xShift;
+
+      var txt = clockTime.hour >= 12 ? "P" : "A";
+
+      drawLayerDc.drawText(
+        amPmX,
+        _hourTextOffsetY,
+        Graphics.FONT_TINY,
+        txt,
+        Graphics.TEXT_JUSTIFY_CENTER
+      );
+      drawLayerDc.drawText(
+        amPmX,
+        _hourTextOffsetY + _tinyFontHeight + AM_PM_GAP,
+        Graphics.FONT_TINY,
+        "M",
+        Graphics.TEXT_JUSTIFY_CENTER
+      );
+    }
+
     drawLayerDc.drawText(
-      _dateTextOffsetX,
+      _dateTextOffsetX + xShift,
       _dateTextOffsetY,
       Graphics.FONT_TINY,
       dateStr,
@@ -279,6 +336,15 @@ class WatchFaceView extends WatchUi.WatchFace {
     if (_bottomComplication != newBottom) {
       _bottomComplication = newBottom;
       _bottomIcon = getIcon(_bottomComplication);
+    }
+
+    var newColorId = Storage.getValue("color");
+    if (newColorId == null) {
+      newColorId = 0;
+    }
+    if (_colorId != newColorId) {
+      _colorId = newColorId;
+      _color = WatchFaceApp.getColor(_colorId);
     }
 
     drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
