@@ -32,8 +32,10 @@ class WatchFaceView extends WatchUi.WatchFace {
 
   private var _topComplication as Number = -1;
   private var _bottomComplication as Number = -1;
+
   private var _colorId as Number = -1;
-  private var _color as Number = Graphics.COLOR_LT_GRAY;
+  private var _primaryColor as Number = Graphics.COLOR_LT_GRAY;
+  private var _secondaryColor as Number = Graphics.COLOR_DK_GRAY;
 
   private var _batteryIconWidth as Number;
   private var _batteryIconHeight as Number;
@@ -163,9 +165,6 @@ class WatchFaceView extends WatchUi.WatchFace {
       return;
     }
 
-    drawLayerDc.setPenWidth(1);
-    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
-
     var activityInfo = ActivityMonitor.getInfo();
 
     var label = "" as String;
@@ -206,6 +205,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       }
     }
 
+    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
     drawLayerDc.drawText(
       x,
       y,
@@ -259,7 +259,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     var xShift = (hourWidth - minuteWidth) / 2;
 
-    drawLayerDc.setColor(_color, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_BLACK);
 
     drawLayerDc.drawText(
       _hourTextOffsetX + xShift,
@@ -277,7 +277,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       Graphics.TEXT_JUSTIFY_LEFT
     );
 
-    drawLayerDc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_secondaryColor, Graphics.COLOR_BLACK);
 
     if (!is24Hour) {
       var amPmX =
@@ -344,10 +344,12 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
     if (_colorId != newColorId) {
       _colorId = newColorId;
-      _color = WatchFaceApp.getColor(_colorId);
+      _primaryColor = WatchFaceApp.getPrimaryColor(_colorId);
+      _secondaryColor = WatchFaceApp.getSecondaryColor(_colorId);
     }
+    
 
-    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_BLACK);
     drawLayerDc.clear();
 
     // top complication

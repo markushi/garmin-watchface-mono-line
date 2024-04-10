@@ -124,7 +124,7 @@ class SettingsView extends WatchUi.View {
     var bottomBitmap = getBitmapFor(bottomComplication) as BitmapResource?;
     centerBitmap(dc, bottomComplicationCenter, bottomBitmap);
 
-    dc.setColor(WatchFaceApp.getColor(colorId), Graphics.COLOR_TRANSPARENT);
+    dc.setColor(WatchFaceApp.getPrimaryColor(colorId), Graphics.COLOR_TRANSPARENT);
     dc.fillCircle(
       colorSettingCenter[0],
       colorSettingCenter[1],
