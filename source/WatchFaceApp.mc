@@ -15,11 +15,11 @@ class WatchFaceApp extends Application.AppBase {
   public static var COLORS_COUNT = 7;
 
   public static function getPrimaryColor(id as Number) as Number {
-    var color = Graphics.COLOR_LT_GRAY;
+    var color = 0xDADADA;
     switch (id) {
       case 0:
         // gray
-        color = 0xAAAAAA;
+        color = 0xFFFFFF;
         break;
       case 1:
         // green
@@ -51,11 +51,11 @@ class WatchFaceApp extends Application.AppBase {
   }
 
  public static function getSecondaryColor(id as Number) as Number {
-    var color = Graphics.COLOR_LT_GRAY;
+    var color = 0xCACACA;
     switch (id) {
       case 0:
         // gray
-        color = 0x555555;
+        color = 0xFAFAFA;
         break;
       case 1:
         // green
@@ -94,15 +94,12 @@ class WatchFaceApp extends Application.AppBase {
 
   public function onStop(state as Dictionary?) as Void {}
 
-  public function getInitialView() as Array<Views or InputDelegates>? {
-    return [new $.WatchFaceView()] as Array<Views>;
+  public function getInitialView() as [Views] or [Views, InputDelegates] {
+    return [new $.WatchFaceView()];
   }
 
-  public function getSettingsView() as Array<Views or InputDelegates>? {
+  public function getSettingsView() as [ WatchUi.Views ] or [ WatchUi.Views, WatchUi.InputDelegates ] or Null {
     var settingsView = new $.SettingsView();
-    return (
-      [settingsView, new $.SettingsDelegate(settingsView)] as
-      Array<Views or InputDelegates>
-    );
+    return [settingsView, new $.SettingsDelegate(settingsView)];
   }
 }

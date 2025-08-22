@@ -27,19 +27,18 @@ class WatchFaceView extends WatchUi.WatchFace {
   private var _labelHeight as Number;
   private var _padding as Number;
 
-  private var _topIcon as BitmapResource?;
-  private var _bottomIcon as BitmapResource?;
-
   private var _topComplication as Number = -1;
   private var _bottomComplication as Number = -1;
 
   private var _colorId as Number = -1;
-  private var _primaryColor as Number = Graphics.COLOR_LT_GRAY;
+  private var _primaryColor as Number = Graphics.COLOR_WHITE;
   private var _secondaryColor as Number = Graphics.COLOR_DK_GRAY;
 
   private var _batteryIconWidth as Number;
   private var _batteryIconHeight as Number;
   private var _batteryIconPadding as Number;
+
+  private var _background as BitmapResource;
 
   private var _daysRemainingShortStr = WatchUi.loadResource(
     Rez.Strings.daysRemainingShort
@@ -47,11 +46,14 @@ class WatchFaceView extends WatchUi.WatchFace {
 
   private const FONT_HOUR = WatchUi.loadResource(Rez.Fonts.id_font_hour);
   private const FONT_MINUTE = WatchUi.loadResource(Rez.Fonts.id_font_minute);
+  private const FONT_ICONS = WatchUi.loadResource(Rez.Fonts.id_font_icons);
   private const HOUR_MINUTE_GAP = 8;
   private const AM_PM_GAP = -8;
 
   public function initialize() {
     WatchFace.initialize();
+
+    _background = WatchUi.loadResource($.Rez.Drawables.id_background) as BitmapResource;
 
     var settings = System.getDeviceSettings();
     _screenHeight = settings.screenHeight;
@@ -122,7 +124,7 @@ class WatchFaceView extends WatchUi.WatchFace {
   private function drawBattery(drawLayerDc as Dc, x as Number, y as Number) {
     var systemStats = System.getSystemStats();
 
-    drawLayerDc.setColor(Graphics.COLOR_DK_GRAY, Graphics.COLOR_DK_GRAY);
+    drawLayerDc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
     var batteryPercentageInPx = (
       (systemStats.battery / 100.0) *
@@ -140,7 +142,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       );
     }
 
-    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_LT_GRAY);
+    drawLayerDc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
 
     drawLayerDc.setPenWidth(3);
     drawLayerDc.drawRoundedRectangle(
@@ -155,7 +157,6 @@ class WatchFaceView extends WatchUi.WatchFace {
   private function drawComplication(
     drawLayerDc as Dc,
     id as Number,
-    icon as BitmapReference?,
     x as Number,
     y as Number,
     iconX as Number,
@@ -205,7 +206,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       }
     }
 
-    drawLayerDc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
     drawLayerDc.drawText(
       x,
       y,
@@ -217,8 +218,25 @@ class WatchFaceView extends WatchUi.WatchFace {
     if (id == WatchFaceApp.COMPLICATION_BATT) {
       // battery
       drawBattery(drawLayerDc, iconX - _batteryIconWidth / 2, iconY);
-    } else if (icon != null) {
-      drawLayerDc.drawBitmap(iconX - icon.getWidth() / 2, iconY, icon);
+    } else {
+      var iconText = "";
+      if (id == WatchFaceApp.COMPLICATION_STEPS) {
+        iconText = "3";
+      } else if (id == WatchFaceApp.COMPLICATION_HR) {
+        iconText = "0";
+      } else if (id == WatchFaceApp.COMPLICATION_KCAL) {
+        iconText = "1";
+      } else if (id == WatchFaceApp.COMPLICATION_BATT) {
+        iconText = "2";
+      }
+      drawLayerDc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
+      drawLayerDc.drawText(
+        iconX,
+        iconY,
+        FONT_ICONS,
+        iconText,
+        Graphics.TEXT_JUSTIFY_CENTER
+      );
     }
   }
 
@@ -259,7 +277,7 @@ class WatchFaceView extends WatchUi.WatchFace {
 
     var xShift = (hourWidth - minuteWidth) / 2;
 
-    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_TRANSPARENT);
 
     drawLayerDc.drawText(
       _hourTextOffsetX + xShift,
@@ -277,7 +295,7 @@ class WatchFaceView extends WatchUi.WatchFace {
       Graphics.TEXT_JUSTIFY_LEFT
     );
 
-    drawLayerDc.setColor(_secondaryColor, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_secondaryColor, Graphics.COLOR_TRANSPARENT);
 
     if (!is24Hour) {
       var amPmX =
@@ -326,7 +344,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
     if (_topComplication != newTop) {
       _topComplication = newTop;
-      _topIcon = getIcon(_topComplication);
     }
 
     var newBottom = Storage.getValue("c.bottom");
@@ -335,7 +352,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
     if (_bottomComplication != newBottom) {
       _bottomComplication = newBottom;
-      _bottomIcon = getIcon(_bottomComplication);
     }
 
     var newColorId = Storage.getValue("color");
@@ -349,14 +365,16 @@ class WatchFaceView extends WatchUi.WatchFace {
     }
     
 
-    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_BLACK);
+    drawLayerDc.setColor(_primaryColor, Graphics.COLOR_TRANSPARENT);
     drawLayerDc.clear();
+
+    // todo: scale to layer
+    drawLayerDc.drawBitmap(0, 0, _background);
 
     // top complication
     drawComplication(
       drawLayerDc,
       _topComplication,
-      _topIcon,
       _centerX,
       _padding,
       _centerX,
@@ -367,7 +385,6 @@ class WatchFaceView extends WatchUi.WatchFace {
     drawComplication(
       drawLayerDc,
       _bottomComplication,
-      _bottomIcon,
       _centerX,
       // assume 40px height of icons
       _screenHeight - _padding - _labelHeight - 40,

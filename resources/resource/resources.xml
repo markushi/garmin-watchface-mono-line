@@ -4,9 +4,11 @@
         <bitmap id="id_icon_hr" filename="icon_hr.png" />
         <bitmap id="id_icon_kcal" filename="icon_kcal.png" />
         <bitmap id="id_icon_batt" filename="icon_batt.png" />
+        <bitmap id="id_background" filename="background.png" />
     </bitmaps>
     <fonts>
         <font id="id_font_hour" filename="font-hour.fnt" filter="0123456789" antialias="true" />
         <font id="id_font_minute" filename="font-minute.fnt" filter="0123456789" antialias="true" />
+        <font id="id_font_icons" filename="font-icons.fnt" filter="0123" antialias="true" />
     </fonts>
 </resources>
